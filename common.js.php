@@ -24,6 +24,8 @@
 # : is independent script, not for including, new Site is generated
 ##############################
 
+ini_set('display_errors', 0);
+
 global $site;
 global $class_path;
 

@@ -132,10 +132,10 @@ function smarty_function_sysword ($params, &$smarty) {
 				$edit_link_start='';$edit_link_end=''; # Bug #2426
 				$new_link_start='';$new_link_end='';
 				
-				if ($final_sys_sona){
+				if($final_sys_sona){
 										
-					if($site->in_editor){
-
+					if($site->in_editor && $site->user->all['is_predefined']){
+						
 						######### sysword edit-link
                         $sysword_sql = $site->db->prepare("SELECT IF(LENGTH(sona)>0,sona,origin_sona) AS sona, id, sys_sona
                         FROM sys_sona_tyyp, sys_sonad 
@@ -191,7 +191,7 @@ function smarty_function_sysword ($params, &$smarty) {
 					return; //1; Bug #1921
 				} 
 				# if word translation not found AND in editor-area => print "[missingword]"
-				else if($site->on_debug || $site->in_editor) { 
+				else if($site->on_debug || ($site->in_editor && $site->user->all['is_predefined'])) { 
 					######### sysword new-link
 
                     # open popup admin/sys_sonad_loetelu.php?lisa=1&sst_id=121&flt_keel=1
