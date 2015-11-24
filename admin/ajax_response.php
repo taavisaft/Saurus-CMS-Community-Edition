@@ -23,6 +23,13 @@ header('Content-type: text/javascript');
 
 $class_path = '../classes/';
 
+// for multi-upload session, the flash does not send cookie values
+if(isset($_POST['PHPSESSID']))
+{
+	session_id($_POST['PHPSESSID']);
+	session_start();
+}
+
 include($class_path.'port.inc.php');
 
 $site = new Site(array());
@@ -46,22 +53,19 @@ if($site->user->user_id && $_REQUEST['op'] == 'generate_alias' && isset($_REQUES
 if($site->user->user_id && $_REQUEST['op'] == 'check_file' && $site->fdat['name'])
 {
 	include_once($class_path.'adminpage.inc.php');
-	if($pathinfo = path_clean($site->fdat['name'])) {
-		$pathinfo = explode('/', $pathinfo);
-		$filename = create_alias_from_string($pathinfo[count($pathinfo) - 1],true);
-		unset($pathinfo[count($pathinfo) - 1]);
-		$dirname = implode('/', $pathinfo);
-		
-		if(file_exists($site->absolute_path.$dirname.'/'.$filename))
-		{
-			echo '{"file_exists": 1}';
-		}
-		else 
-		{
-			echo '{"file_exists": 0}';
-		}
+	
+	$pathinfo = str_replace(array('../', './', '..\\', '.\\'), '', $site->fdat['name']);
+	$pathinfo = explode('/', $pathinfo);
+	$filename = create_alias_from_string($pathinfo[count($pathinfo) - 1],true);
+	unset($pathinfo[count($pathinfo) - 1]);
+	$dirname = implode('/', $pathinfo);
+	
+	if(file_exists($site->absolute_path.$dirname.'/'.$filename))
+	{
+		echo '{"file_exists": 1}';
 	}
-	else {
+	else 
+	{
 		echo '{"file_exists": 0}';
 	}
 	
