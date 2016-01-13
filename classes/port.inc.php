@@ -124,7 +124,8 @@ function verify_form_token()
 
 ###################################
 # Error reporting is always "7"
-error_reporting(7);
+error_reporting(E_ALL);
+
 ini_set('display_errors', 0); // hide all errors from screen
 
 if ($debug && show_debug()){

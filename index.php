@@ -23,7 +23,7 @@
 # : is independent script, not for including, new Site is generated
 ##############################
 
-error_reporting(7);
+error_reporting(E_ALL);
 
 global $site;
 global $class_path;
@@ -45,7 +45,7 @@ if ($matches[1]=="editor"){
 
 #################################################
 # Debug cookies
-if ($_GET['debug'] == 'on')
+if($_GET['debug'] == 'on')
 {
 		setcookie ('debug', '1');
 		$_COOKIE['debug'] = 1;
@@ -216,7 +216,7 @@ if ($CMS_SETTINGS['cache_enabled']) { # if we are using cache => go on
 		dbname	=> $dbconf["db"],
 		user	=> $dbconf["user"],
 		pass	=> $dbconf["passwd"],
-		'mysql_set_names'	=> $dbconf["mysql_set_names"],
+		#'mysql_set_names'	=> $dbconf["mysql_set_names"], #TODO
 	));
 	if ($DB->error) { # Bug #2468
 		print "<font face=\"arial, verdana\" color=red>Error! Can't connect to database!</font>";
@@ -321,7 +321,7 @@ include_once($class_path."port.inc.php");
 
 #################################################
 # error_reporting
-error_reporting(7);
+error_reporting(E_ALL);
 
 #################################################
 # create site and page

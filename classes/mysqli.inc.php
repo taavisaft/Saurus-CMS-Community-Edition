@@ -25,53 +25,69 @@
 
 error_reporting(E_ALL);
 
+class DBi{
+	
+	public static $conn;
+	
+}
+
 class DB {
+	
 	var $dbh;
 	var $sql_count;
 	var $sql_aeg;
 	var $connection;
 	var $dbname;
 	var $fields_info;
-#	var $debug;
+	#var $debug;
 	var $error_msg;
 	var $error_no;
 	var $error;
-
-
+	
 	function DB() {
 		$args = func_get_arg(0);
 
 		global $site;
+		
 		$this->site = &$site;
 
 		$this->debug = new Debug();
 		$this->timer = new Timer();
 
 		$this->dbname = $args["dbname"];
-		$this->port = $args[port] ? $args[port] : "3306";
+		$this->port = $args['port'] ? $args['port'] : "3306";
 		$this->fields_info = array();
 
-		#FAQ:Setting the database port to anything else than 3306 doesn't work!
-		#First be sure you have Saurus CMS version later than 3.1.29. If it doesn't help, then if you are #using an mysql server on a different port e.g. 3307 instead of 3306, using "localhost" as #"dbhost" parameter will override the "dbport" value and use the default port 3306. Specify the #computer host or domain name instead. This is a bug in the mysql client. 
+		
+		$this->connection = mysqli_connect($args['host'], $args['user'], $args['pass'], $this->dbname, $this->port);
+		
+		DBi::$conn = new mysqli($args['host'], $args['user'], $args['pass'], $this->dbname, $this->port);
 
-		if (($this->connection = @mysql_connect($args[host].":".$this->port,$args[user],$args[pass])) && $this->dbname) {
-			if (!$this->dbh = mysql_select_db($this->dbname,$this->connection)){
-				$this->debug->msg(mysql_error($this->connection));
-				#$this->error(); # commented out, Bug #2468
+		
+		#if (($this->connection = @mysql_connect($args['host'].":".$this->port,$args['user'],$args['pass'])) && $this->dbname) {
+		if ($this->connection){
+			
+			#if(!$this->dbh = mysql_select_db($this->dbname,$this->connection)){
+			if(!$this->dbh = mysqli_select_db($this->connection, $this->dbname)){
+				$this->debug->msg(mysqli_error($this->connection));
 			}
-		} elseif (!$this->dbname) {
-			$this->connection = @mysql_connect($args[host].":".$this->port,$args[user],$args[pass]);
+		
 		} else {
-			$this->debug->msg(mysql_error($this->connection));
+			
+			$this->debug->msg(mysqli_error($this->connection));
 			#$this->error(); # commented out, Bug #2468
 		}
-		$this->error_no = mysql_errno($this->connection);
-		$this->error = mysql_error($this->connection);
+		
+		$this->error_no = mysqli_errno($this->connection);
+		$this->error = mysqli_error($this->connection);
+		
+		
+		/* Temporary disabled by Taavi
 		if(!$this->connection && !$this->dbname)
 		{
 			$this->error = "Access denied for user ".$args[user]."@".$args[host].":".$this->port;
 		}
-		elseif(strpos(mysql_get_server_info($this->connection), '4.0') !== 0) // sql_mode was introduced in 4.1
+		elseif(strpos(mysqli_get_server_info($this->connection), '4.0') !== 0) // sql_mode was introduced in 4.1
 		{
 			// disable strict mode
 			new SQL("set session sql_mode=''");
@@ -81,17 +97,22 @@ class DB {
 		{
 			new SQL("set names ". $args['mysql_set_names']);
 		}
-
+		
 		$this->get_timezone();
+		*/
 	}
 
+	
 	function get_timezone(){
+	
 		global $site;
 		static $k=0;
+	
 		if($k===0){
 			
 		$sql="select * from config where nimi = 'time_zone' limit 1";
 		$sth = new SQL($sql);
+		
 			if($data = $sth->fetch()){
 				if(is_numeric($data['sisu'])){
 					if(!@putenv('TZ='))
@@ -374,11 +395,21 @@ class DB {
 				$this->debug->msg("Väljade info leitud cache'is, võti = ".$table);
 				return $this->fields_info[$table];
 			} else {
-				$fields = mysql_list_fields($this->dbname, $table, $this->connection);
-				$columns = mysql_num_fields($fields);
+
+				#$fields = mysql_list_fields($this->dbname, $table, $this->connection);
+				#$columns = mysql_num_fields($fields);
+				
+				$table_fields = DBi::$conn->query("SELECT * FROM $table");
+				
+				$fields = mysqli_fetch_fields($table_fields);
+				$columns = mysqli_num_fields($table_fields);
+				
 				for ($i = 0; $i < $columns; $i++) {
-						array_push($fields_ary, mysql_field_name($fields, $i));
-					}
+					//array_push($fields_ary, mysql_field_name($fields, $i));
+					// @TODO verify if this is valid
+					array_push($fields_ary, $fields[$i]->name);
+				}
+				
 				$this->debug->msg("Väljade info genereeritud");
 				$result = join(",",$fields_ary);
 				$this->fields_info[$table] = $result;
@@ -393,7 +424,7 @@ class DB {
 		# 
 		$message = "<table><tr><td colspan=2><b><font color=red>Database error</font></b></td></tr>";
 		$message .= "<tr valign=top><td><b>SQL</b>:</td><td>".$this->sql."</td></tr>";
-		$message .= "<tr valign=top><td><b>Error</b>:</td><td>".mysql_error($this->connection)."</td></tr>";
+		$message .= "<tr valign=top><td><b>Error</b>:</td><td>".mysqli_error($this->connection)."</td></tr>";
 		$message .= "</table>";
 		$this->debug->msg($message);
 		$this->debug->print_msg();
@@ -402,7 +433,7 @@ class DB {
 		if (ini_get('display_errors')){
 			$message = "<table><tr><td colspan=2><b><font color=red>Database error</font></b></td></tr>";
 			$message .= "<tr valign=top><td><b>SQL</b>:</td><td>".htmlspecialchars($this->sql)."</td></tr>";
-			$message .= "<tr valign=top><td><b>Error</b>:</td> <td>".htmlspecialchars(mysql_error($this->connection))."</td></tr>";
+			$message .= "<tr valign=top><td><b>Error</b>:</td> <td>".htmlspecialchars(mysqli_error($this->connection))."</td></tr>";
 			$message .= "</table>";
 			echo $message;
 			unset($message);
@@ -417,25 +448,18 @@ class DB {
 
 			$res = @mysql_query("SELECT sisu FROM config WHERE nimi='save_error_log'", $this->connection);
 			if ($res){
-				list($tmp) = @mysql_fetch_array($res);
+				#list($tmp) = @mysql_fetch_array($res);
+				list($tmp) = mysqli_fetch_array($res);
 			}
 			define("SAVE_ERROR_LOG", ($tmp ? 1:0));
 		}
-
+		
+		/* TODO
 		if (SAVE_ERROR_LOG){
 			@mysql_query("INSERT INTO error_log (time_of_error, source, err_text, err_type, domain, referrer, fdat_scope, ip) VALUES (NOW(), '".addslashes($this->sql)."', '".addslashes($error_text)."', 'SQL', '".addslashes($_SERVER['HTTP_HOST'])."', '".addslashes($_SERVER['REQUEST_URI'])."', '".addslashes($serialized_fdat)."', '".$_SERVER['REMOTE_ADDR']."')", $this->connection);
 		}
+		*/
 
-
-//		$this->site->debug->print_msg();
-/*
-		$this->site->kirjuta_log(array(
-			on_fataalne_error => 1,
-			on_error => 1,
-			text => mysql_error(),
-			sql_text => $this->sql
-		));
-*/
 	}
 	######### / SQL FUNCTIONS
 
@@ -444,7 +468,6 @@ class DB {
 class SQL {
 
 	var $sql;
-#	var $debug;
 	var $result;
 	var $rows;
 	var $num_fields;
@@ -452,13 +475,13 @@ class SQL {
 	var $error;
 	var $i; # row number
 	var $insert_id;
-
-	function SQL ($sql) {
-#old		$this->BaasObjekt();
-
+	
+	
+	function SQL($sql) {
+	
 		global $site;
 		$this->site = &$site;
-
+		
 		$this->debug = new Debug();
 		$this->timer = new Timer();
 
@@ -467,40 +490,45 @@ class SQL {
 		
 		$this->debug->msg($this->sql);
 		$errdsp = ini_get('display_errors');
-		ini_set('display_errors', 0);
-		if (is_resource($this->site->db->connection)) {
-			$this->result = @mysql_query($this->sql, $this->site->db->connection);
-		} else {
-			$this->result = @mysql_query($this->sql);
-		}
-		ini_set('display_errors', $errdsp);
-
-		#echo "<pre>";
-		#print_r($this);
-		#echo "</pre>";
 		
+		ini_set('display_errors', 1); # Display errors
+		
+		#if(is_resource($this->site->db->connection)) {
+		# MySQL is not recource but object
+		if(is_object(DBi::$conn)){
+			
+			#$this->result = @mysql_query($this->sql, $this->site->db->connection);	
+			$this->result = DBi::$conn->query($this->sql);
+		
+		} else {
+			
+			# If connection missing, @TODO display error not empty result
+			$this->result = "";
+		}
+				
+		ini_set('display_errors', $errdsp);
 
 		$aeg = $this->timer->get_aeg();
 		if (!empty($this->site->db)) {
 			$this->site->db->sql_count++;
 			$this->site->db->sql_aeg += $aeg;
 		}
-
+		
 		if ($this->site->db->debug) {
 			$this->site->db->debug->msg($this->site->db->sql_count.". ".$this->sql);
 			$this->site->db->debug->msg($this->site->db->sql_count.". Aeg: ".$aeg. " ; Koguaeg: ". $this->site->db->sql_aeg. ($aeg>0.01?" SLOW QUERY (>0.01)":""));
 		}
 
 		if (is_resource($this->site->db->connection)) {
-			$this->error_no = mysql_errno($this->site->db->connection);
-			$this->error = mysql_error($this->site->db->connection);
+			$this->error_no = mysqli_errno($this->site->db->connection);
+			$this->error = mysqli_error($this->site->db->connection);
 		} else {
-			$this->error_no = mysql_errno();
-			$this->error = mysql_error();
+			$this->error_no = '';
+			$this->error = '';
 		}
 
 		if ($this->error_no) {	
-			#$this->debug->msg("VIGA: ".$sql."<br>".mysql_error());
+			#$this->debug->msg("VIGA: ".$sql."<br>".mysqli_error());
 			$this->error();
 			$this->result ="";
 		} else {
@@ -526,20 +554,27 @@ class SQL {
 			}
 			$this->debug->msg("affected rows: ".$this->rows);
 			ini_set('display_errors', $errdsp);
-		}		
+		}
+		
 	}
 
 
 	function fetch($result_type='BOTH') {
+		
 		$this->i++;
+		
 		if($result_type == 'ASSOC'){
-			$result_type = MYSQL_ASSOC;
+			$result_type = 'MYSQLI_ASSOC';
 		} else if ($result_type == 'NUM'){
-			$result_type = MYSQL_NUM;
+			$result_type = 'MYSQLI_NUM';
 		} else {
-			$result_type = MYSQL_BOTH;
+			$result_type = 'MYSQLI_BOTH';
 		}
-		return $this->error_no ? "" : @mysql_fetch_array($this->result, $result_type);
+		
+		#return $this->error_no ? "" : @mysql_fetch_array($this->result, $result_type);
+		#return $this->error_no ? "" : mysqli_fetch_array($this->result, $result_type);
+		return $this->error_no ? "" : $this->result->fetch_assoc();
+
 	}
 	
 	function fetchsingle() {
@@ -550,7 +585,10 @@ class SQL {
 
 	function fetchrow() {
 		$this->i++;
-		return $this->error_no ? "" : @mysql_fetch_row($this->result);
+		
+		#return $this->error_no ? "" : @mysql_fetch_row($this->result);
+		return $this->error_no ? "" : $this->result->fetch_row();
+	
 	}
 
 	function field_name($number_of_field) {
@@ -561,9 +599,9 @@ class SQL {
 	function error() {
 		
 		if (is_resource($this->site->db->connection)) {
-			$error_text = mysql_error($this->site->db->connection);
+			$error_text = mysqli_error($this->site->db->connection);
 		} else {
-			$error_text = mysql_error();
+			$error_text = mysqli_error();
 		}
 
 		$message = "<table><tr><td colspan=2><b><font color=red>Database error</font></b></td></tr>";
@@ -597,7 +635,8 @@ class SQL {
 			}
 
 			if ($res){
-				list($tmp) = @mysql_fetch_array($res);
+				#list($tmp) = @mysql_fetch_array($res);
+				list($tmp) = mysqli_fetch_array($res);
 			}
 			define("SAVE_ERROR_LOG", ($tmp ? 1:0));
 		}

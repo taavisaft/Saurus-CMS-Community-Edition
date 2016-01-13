@@ -42,7 +42,7 @@ $site = new Site(array(
 ));
 
 #temporary:
-error_reporting(7);
+error_reporting(E_ALL);
 
 # default tab is first one:
 $site->fdat['tab'] = $site->fdat['tab']? $site->fdat['tab'] : 'edit';

@@ -275,7 +275,7 @@ class Site {
 			"pass"	=> $this->CONF["passwd"],
 			'mysql_set_names' => $this->CONF["mysql_set_names"],
 		));	
-
+		
 		if ($this->db->error) { 
 			print "<font face=\"arial, verdana\" color=red>Error! Can't connect to database!</font>";
 			exit;

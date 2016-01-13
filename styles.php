@@ -27,7 +27,7 @@
 # : is independent script, not for including, new Site is generated
 ##############################
 
-error_reporting(7);
+error_reporting(E_ALL);
 
 global $site;
 global $class_path;

@@ -51,7 +51,7 @@ $parent_pagename = $adminpage_names['parent_pagename'];
 $pagename = $adminpage_names['pagename'];
 
 #temporary:
-error_reporting(7);
+error_reporting(E_ALL);
 
 $site->fdat['profile_id'] = (int)$site->fdat['profile_id'];
 

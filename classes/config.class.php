@@ -19,7 +19,7 @@
 
 
 
-error_reporting(7);
+error_reporting(E_ALL);
 
 class CONFIG {
 // config faili reeglidega formateeritud 
@@ -43,7 +43,8 @@ class CONFIG {
 	# ---------------------
 		$this->debug->msg("IMPORT: $text");
 		
-		foreach (split("[\n\r]+",$text) as $rida) {
+		# Deprecates as of 5.3#  foreach (split("[\n\r]+",$text) as $rida) {
+		foreach (preg_split("/[\n\r]+/",$text) as $rida) {
 			$this->debug->msg("rida: $rida");
 			if (preg_match('/^\s*([^#=]+?)\s*=\s*([^#]+)\s*(?:#.*)?$/',$rida,$matches)) {
 				$this->CONF[trim($matches[1])] = trim($matches[2]);

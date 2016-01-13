@@ -240,10 +240,10 @@ function print_requirements_table() {
 	</tr>
 	<?php
 	####### PHP version: 5.0.0 - 5.6.3
-	if(version_compare(phpversion(), "5.3.0") < 0 || version_compare(phpversion(), "5.6.2") > 0) {
+	if(version_compare(phpversion(), "5.4.0") < 0 || version_compare(phpversion(), "5.6.9") > 0) {
 		$color = "color='red'";
 	}
-	echo "<tr><td><font ".$color.">PHP version</font></td><td><font ".$color.">5.3.0 - 5.6.2</font></td><td><font ".$color.">".phpversion()."</font></td></tr>";
+	echo "<tr><td><font ".$color.">PHP version</font></td><td><font ".$color.">5.4 - 5.6.9</font></td><td><font ".$color.">".phpversion()."</font></td></tr>";
 	$color = "color='black'";	//restore default color
 
 	####### mysql support in php
