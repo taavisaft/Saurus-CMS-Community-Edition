@@ -28,7 +28,7 @@ global $class_path;
 $class_path = "../classes/";
 include($class_path."port.inc.php");
 include($class_path."adminpage.inc.php");
-error_reporting(E_ALL);
+error_reporting(E_ERROR | E_WARNING | E_PARSE);
 #Get debug cookie muutuja
 $debug = $_COOKIE["debug"] ? 1:0;
 

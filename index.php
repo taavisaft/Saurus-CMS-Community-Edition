@@ -23,7 +23,7 @@
 # : is independent script, not for including, new Site is generated
 ##############################
 
-error_reporting(E_ALL);
+error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
 global $site;
 global $class_path;
@@ -321,7 +321,7 @@ include_once($class_path."port.inc.php");
 
 #################################################
 # error_reporting
-error_reporting(E_ALL);
+error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
 #################################################
 # create site and page
